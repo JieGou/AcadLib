@@ -61,12 +61,19 @@
             return GetDimStyle(db, PIK + "$2", UserGroup);
         }
 
+        /// <summary>
+        /// 获取标注样式.
+        /// </summary>
+        /// <param name="db">database.</param>
+        /// <param name="styleName">样式名称.</param>
+        /// <param name="templateName">样板名称.</param>
+        /// <returns>复制的标注样式.</returns>
         public static ObjectId GetDimStyle(this Database db, string styleName, string templateName)
         {
             var idStyle = GetDimStyleId(db, styleName);
             if (idStyle.IsNull)
             {
-                // Копирование размерного стиля из шаблона
+                // Copying a Dimension Style from a Template
                 try
                 {
                     idStyle = CopyObjectFromTemplate(db, GetDimStyleId, styleName, db.DimStyleTableId, templateName);
@@ -118,6 +125,14 @@
             return db.GetLineTypeIdByName(SymbolUtilityServices.LinetypeContinuousName);
         }
 
+        /// <summary>
+        /// 获取多重引线样式.
+        /// </summary>
+        /// <param name="db">database.</param>
+        /// <param name="styleName">样式名称.</param>
+        /// <param name="template">样板.</param>
+        /// <param name="update">是否更新.</param>
+        /// <returns>复制的样式.</returns>
         public static ObjectId GetMleaderStyle(this Database db, string styleName, string template, bool update)
         {
             var idStyle = ObjectId.Null;
@@ -128,7 +143,7 @@
 
             if (update || idStyle.IsNull)
             {
-                // Копирование стиля из шаблона
+                // Copying the style from the template
                 try
                 {
                     idStyle = CopyObjectFromTemplate(db, GetMleaderStyleId, styleName, db.MLeaderStyleDictionaryId, template);
@@ -287,7 +302,7 @@
             return AcadLib.Scale.ScaleHelper.GetCurrentAnnoScale(db);
         }
 
-        // Копирование стиля таблиц ПИК из файла шаблона
+        // Copying PIC table style from template file
         private static ObjectId CopyObjectFromTemplate(
             Database db,
             Func<Database, string, ObjectId> getObjectId,
@@ -297,9 +312,8 @@
         {
             var idStyleDest = ObjectId.Null;
 
-            // файл шаблона
-            var fileTemplate = Path.Combine(PikSettings.LocalSettingsFolder, "Template", UserGroup,
-                templateName + ".dwt");
+            // template file
+            var fileTemplate = Path.Combine(PikSettings.LocalSettingsFolder, "Template", UserGroup, templateName + ".dwt");
             if (File.Exists(fileTemplate))
             {
                 using var dbTemplate = new Database(false, true);
@@ -309,7 +323,7 @@
                 if (!idStyleInTemplate.IsNull)
                 {
                     using var map = new IdMapping();
-                    using var ids = new ObjectIdCollection(new[] {idStyleInTemplate});
+                    using var ids = new ObjectIdCollection(new[] { idStyleInTemplate });
                     using var lockDoc = Application.DocumentManager.MdiActiveDocument?.LockDocument();
                     db.WblockCloneObjects(ids, ownerIdTable, map, DuplicateRecordCloning.Replace, false);
                     idStyleDest = map[idStyleInTemplate].Value;
